@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dekomposisi Koding - Tema Menyenangkan (Fase C)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --glass: rgba(255,255,255,0.85);
+  --soft: #f7fbff;
+  --accentA: #ff9bb3; --accentB: #8be5b9; --accentC: #8ecbff;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+}
+*{box-sizing:border-box}
+body{ margin:0; background:#081226; color:#072033; min-height:100vh; -webkit-font-smoothing:antialiased; }
+.app{ min-height:100vh; display:flex; flex-direction:column; background-size:cover; background-position:center; transition:background-image .4s ease; }
+.overlay{ background: linear-gradient(180deg, rgba(2,10,20,0.22), rgba(2,6,12,0.6)); padding:30px; min-height:100vh; }
+.header{ display:flex; justify-content:space-between; align-items:center; gap:12px; color:white; }
+.brand{ display:flex; gap:12px; align-items:center; }
+.logo{ width:68px;height:68px;border-radius:14px;background:linear-gradient(135deg,var(--accentA),var(--accentC)); display:flex;align-items:center;justify-content:center;font-weight:900;color:white;font-size:22px; box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+.title{ font-size:20px; margin:0; }
+.subtitle{ font-size:12px; opacity:0.9; }
+.controls{ display:flex; gap:8px; align-items:center; }
+.btn{ padding:8px 12px; border-radius:12px; font-weight:800; border:0; cursor:pointer; }
+.btn-ghost{ background: rgba(255,255,255,0.08); color:white; }
+.btn-primary{ background: linear-gradient(90deg,var(--accentB),var(--accentC)); color:#052226; box-shadow:0 8px 20px rgba(6,35,60,0.12); }
+.container{ display:grid; grid-template-columns: 2fr 1fr; gap:18px; margin-top:18px; align-items:start; }
+.card{ background:var(--glass); border-radius:16px; padding:14px; box-shadow:0 12px 30px rgba(2,8,20,0.45); }
+.grid-two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+.list{ max-height:360px; overflow:auto; display:flex; flex-direction:column; gap:10px; padding-right:6px; }
+.step{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px; border-radius:12px; background:linear-gradient(90deg,#fff,#fcfcff); box-shadow:0 8px 20px rgba(6,20,40,0.05); }
+.step:hover{ transform:translateY(-6px); transition:transform .22s ease; }
+.step.chosen{ background:linear-gradient(90deg,#fff6e0,#ffeef6); }
+.stepNumber{ width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-weight:900;}
+.muted{ font-size:13px; color:#2e4a5a; }
+.aside .small{ font-size:13px; color:#052036; }
+.notif{ position:fixed; right:18px; top:18px; z-index:90; display:flex; gap:12px; align-items:center; padding:12px 14px; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.45); }
+.notif.ok{ background: linear-gradient(90deg,#c7ffd9,#e8ffef); color:#04402f; }
+.notif.err{ background: linear-gradient(90deg,#ffdede,#fff6f6); color:#6b0a0a; }
+.bg-thumb{ width:56px;height:40px;background-size:cover;border-radius:8px;border:2px solid rgba(255,255,255,0.45); cursor:pointer; }
+.sticker{ width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#fff6b6,#ffd1f0);font-weight:900; box-shadow:0 6px 14px rgba(0,0,0,0.12); }
+.footer-note{ color:rgba(255,255,255,0.85); position:fixed; left:14px; bottom:12px; font-size:13px; }
+.themeTabs{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.tab{ padding:8px 12px; border-radius:12px; cursor:pointer; background:rgba(255,255,255,0.08); color:white; font-weight:800; }
+.tab.active{ background:linear-gradient(90deg,var(--accentA),var(--accentB)); color:#042226; box-shadow:0 8px 18px rgba(0,0,0,0.2); transform:translateY(-3px); }
+
+@media (max-width:900px){ .container{ grid-template-columns:1fr; } .logo{width:56px;height:56px} .overlay{padding:18px} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="overlay">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">DC</div>
+        <div>
+          <div class="title">Dekomposisi Koding — Tema Menyenangkan</div>
+          <div class="subtitle">Pilih tema, susun langkah, dapatkan stiker! (Fase C)</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;">
+          <div style="font-weight:900;color:white">Pilih Tema</div>
+          <div class="themeTabs" id="themeTabs" style="margin-top:6px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;margin-left:8px;">
+          <div style="font-weight:700;color:#fff;font-size:12px">Suara</div>
+          <label style="display:flex;align-items:center;gap:8px;color:white;"><input id="soundToggle" type="checkbox" checked> Aktif</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <section>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <strong style="font-size:18px;" id="lessonTitle">Tema: —</strong>
+              <div class="muted" id="lessonSubtitle">Pilih tema di kanan atas</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:900;color:#052036">Stiker: <span id="stickerCount">0</span></div>
+              <div class="muted" style="font-size:12px;">Selesaikan tantangan untuk mendapat stiker</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btnShuffle" class="btn btn-ghost">🔀 Acak Langkah</button>
+            <button id="btnNew" class="btn btn-primary">✨ Mulai Baru</button>
+            <button id="btnSpeak" class="btn btn-ghost">🔊 Baca Langkah</button>
+            <button id="btnPresent" class="btn btn-ghost">📽 Presentasi</button>
+            <button id="btnReset" class="btn btn-ghost">♻️ Reset</button>
+          </div>
+
+          <div class="grid-two">
+            <div>
+              <h4 style="margin:12px 0 6px 0;">Langkah (Pilih satu-satu)</h4>
+              <div class="list" id="availableList"></div>
+            </div>
+
+            <div>
+              <h4 style="margin:12px 0 6px 0;">Langkah Terpilih (Susun ulang)</h4>
+              <div class="list" id="selectedList"></div>
+
+              <div style="margin-top:12px;display:flex;gap:8px;">
+                <button id="btnCheck" class="btn btn-primary">✅ Periksa Urutan</button>
+                <button id="btnChallenge" class="btn btn-ghost">🎯 Tantangan Cepat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:86px;height:86px;border-radius:14px;background:linear-gradient(135deg,#fff,#fff6d6);display:flex;align-items:center;justify-content:center;font-size:34px;">🎉</div>
+            <div>
+              <strong>Petunjuk Singkat</strong>
+              <div class="muted" style="margin-top:6px;">Pilih langkah dari kolom kiri, susun dengan tombol Naik/Turun. Gunakan Presentasi untuk menampilkan cerita langkah.</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <aside class="aside">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <strong>Pengaturan & Background</strong>
+              <div class="muted">Ganti suasana sesuai tema</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="text-align:right;font-size:12px;">Pilih Background</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <div class="bg-thumb" data-src="https://images.unsplash.com/photo-1529220502050-3f9f0d3b9a6b?w=1400&q=80&auto=format&fit=crop" style="background-image:url('https://images.unsplash.com/photo-1529220502050-3f9f0d3b9a6b?w=200&q=80&auto=format&fit=crop')"></div>
+            <div class="bg-thumb" data-src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1400&q=80&auto=format&fit=crop" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=200&q=80&auto=format&fit=crop')"></div>
+            <div class="bg-thumb" data-src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1400&q=80&auto=format&fit=crop" style="background-image:url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=200&q=80&auto=format&fit=crop')"></div>
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px dashed rgba(0,0,0,0.06)">
+
+          <div>
+            <strong>Koleksi Stiker</strong>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <div class="sticker" id="stickerBox">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <strong>Tips Guru</strong>
+          <div class="muted" style="margin-top:8px;">Gunakan tema yang sesuai minat siswa. Beri hadiah kecil saat siswa menyelesaikan urutan dengan benar.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer-note">Dibuat untuk Pembelajaran SD • Dekomposisi — Fase C</div>
+    <div id="notifContainer"></div>
+  </div>
+</div>
+
+<!-- confetti lib -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/* ================== DATA THEME ================== */
+const THEMES = {
+  'eskrim': {
+    id:'eskrim', title:'Membuat Es Krim Sendiri 🍦', subtitle:'Belajar dekomposisi lewat membuat es krim sederhana.',
+    bg: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=1400&q=80&auto=format&fit=crop',
+    steps: [
+      'Menyiapkan bahan (susu, gula, plastik, es batu, garam)',
+      'Tuangkan susu dan gula ke plastik kecil',
+      'Kencangkan plastik kecil dan masukkan ke plastik besar',
+      'Masukkan es dan garam ke dalam plastik besar',
+      'Goyang-goyang sampai cairan mengental',
+      'Keluarkan plastik kecil, bilas lalu nikmati es krim'
+    ]
+  },
+  'tanam': {
+    id:'tanam', title:'Menanam Bunga di Sekolah 🌷', subtitle:'Dekomposisi kegiatan menanam bunga.',
+    bg: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1400&q=80&auto=format&fit=crop',
+    steps: [
+      'Siapkan pot kecil dan tanah',
+      'Ambil bibit bunga yang sehat',
+      'Masukkan tanah ke pot hingga setengah',
+      'Tanam bibit dan tutup dengan tanah',
+      'Sirami secukupnya setiap hari',
+      'Letakkan pot di tempat yang mendapat sinar matahari'
+    ]
+  },
+  'puzzle': {
+    id:'puzzle', title:'Bermain Puzzle di Kelas 🧩', subtitle:'Uraikan cara menyelesaikan puzzle.',
+    bg: 'https://images.unsplash.com/photo-1581092559531-2b72a9b8b6b4?w=1400&q=80&auto=format&fit=crop',
+    steps: [
+      'Buka kotak puzzle dan sebarkan kepingan',
+      'Cari pinggir kotak dan susun bingkai',
+      'Kelompokkan kepingan berdasarkan warna',
+      'Cocokkan kepingan satu per satu',
+      'Isi area pusat sampai puzzle lengkap',
+      'Periksa apakah semua kepingan pas'
+    ]
+  },
+  'sepeda': {
+    id:'sepeda', title:'Bersepeda Aman ke Sekolah 🚲', subtitle:'Dekomposisi rutinitas bersepeda aman.',
+    bg: 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=1400&q=80&auto=format&fit=crop',
+    steps: [
+      'Periksa rem dan ban sepeda',
+      'Kenakan helm dan pakaian keselamatan',
+      'Rencanakan rute yang aman',
+      'Taat rambu lalu lintas saat berkendara',
+      'Berhenti dan tunggu jika ada gangguan',
+      'Parkir sepeda di tempat yang aman'
+    ]
+  },
+  'sarapan': {
+    id:'sarapan', title:'Membuat Sarapan Sehat 🍳', subtitle:'Langkah-langkah menyiapkan sarapan sederhana.',
+    bg: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1400&q=80&auto=format&fit=crop',
+    steps: [
+      'Cuci tangan sebelum memasak',
+      'Siapkan bahan (roti, telur, buah)',
+      'Goreng telur atau buat sandwich',
+      'Potong buah untuk pelengkap',
+      'Atur piring dan minuman sehat',
+      'Ajak teman makan bersama'
+    ]
+  }
+};
+
+/* =========== STATE =========== */
+let currentThemeId = 'eskrim';
+let steps = [];
+let selected = [];
+let stickers = 0;
+
+/* =========== DOM refs =========== */
+const themeTabs = document.getElementById('themeTabs');
+const lessonTitle = document.getElementById('lessonTitle');
+const lessonSubtitle = document.getElementById('lessonSubtitle');
+const appEl = document.getElementById('app');
+const availableList = document.getElementById('availableList');
+const selectedList = document.getElementById('selectedList');
+const stickerCount = document.getElementById('stickerCount');
+const stickerBox = document.getElementById('stickerBox');
+const notifContainer = document.getElementById('notifContainer');
+
+/* =========== Audio setup ========= */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(type){
+  if(!document.getElementById('soundToggle').checked) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  if(type==='click'){ o.frequency.value = 900; g.gain.value = 0.02; o.type='sine'; }
+  if(type==='success'){ o.frequency.value = 520; g.gain.value = 0.06; o.type='triangle'; }
+  if(type==='error'){ o.frequency.value = 220; g.gain.value = 0.08; o.type='sawtooth'; }
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  setTimeout(()=> o.stop(), type==='success'?260:120);
+}
+document.body.addEventListener('click', ()=> { if(audioCtx.state==='suspended') audioCtx.resume(); }, { once:true });
+
+/* =========== UTIL =========== */
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]] } return r; }
+function showNotif(text, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'notif ' + (type==='ok'? 'ok' : 'err');
+  el.innerHTML = `<strong style="margin-right:8px;">${type==='ok'?'Berhasil':'Perhatian'}</strong><div>${text}</div>`;
+  notifContainer.appendChild(el);
+  setTimeout(()=> el.style.opacity = 1, 10);
+  setTimeout(()=> { el.style.opacity = 0; setTimeout(()=> el.remove(), 350) }, 3000);
+}
+
+/* =========== RENDER THEME TABS =========== */
+function renderThemeTabs(){
+  themeTabs.innerHTML = '';
+  Object.values(THEMES).forEach(t=>{
+    const b = document.createElement('div');
+    b.className = 'tab' + (t.id===currentThemeId? ' active':'');
+    b.textContent = t.title;
+    b.title = t.subtitle;
+    b.onclick = ()=> { setTheme(t.id); playTone('click'); };
+    themeTabs.appendChild(b);
+  });
+}
+
+/* =========== LOAD THEME =========== */
+function setTheme(id){
+  currentThemeId = id;
+  const t = THEMES[id];
+  lessonTitle.textContent = `Tema: ${t.title}`;
+  lessonSubtitle.textContent = t.subtitle;
+  appEl.style.backgroundImage = `linear-gradient(180deg, rgba(2,8,20,0.25), rgba(2,8,20,0.45)), url('${t.bg}')`;
+  steps = shuffle(t.steps).map((s,i)=>({ id: `${id}_${i}_${Date.now()}`, text: s }));
+  selected = [];
+  renderAvailable(); renderSelected();
+  renderThemeTabs();
+  showNotif('Tema diubah: ' + t.title, 'ok');
+}
+
+/* =========== RENDER LISTS =========== */
+function renderAvailable(){
+  availableList.innerHTML = '';
+  steps.forEach((s, idx)=>{
+    const div = document.createElement('div'); div.className = 'step';
+    div.innerHTML = `<div style="display:flex;gap:10px;align-items:center;"><div class="stepNumber">${idx+1}</div><div><div style="font-weight:800">${s.text}</div><div class="muted">Langkah acak</div></div></div>
+      <div style="display:flex;gap:8px;"><button class="btn btn-ghost pickBtn" data-id="${s.id}">PILIH</button></div>`;
+    availableList.appendChild(div);
+  });
+  document.querySelectorAll('.pickBtn').forEach(b=> b.onclick = ()=> { pickStep(b.dataset.id); playTone('click'); });
+}
+
+function renderSelected(){
+  selectedList.innerHTML = '';
+  selected.forEach((s, idx)=>{
+    const div = document.createElement('div'); div.className = 'step chosen';
+    div.innerHTML = `<div style="display:flex;gap:10px;align-items:center;"><div class="stepNumber">${idx+1}</div><div><div style="font-weight:800">${s.text}</div><div class="muted">Langkah terurut</div></div></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost upBtn" data-id="${s.id}">▲</button>
+        <button class="btn btn-ghost downBtn" data-id="${s.id}">▼</button>
+        <button class="btn btn-ghost delBtn" data-id="${s.id}">❌</button>
+      </div>`;
+    selectedList.appendChild(div);
+  });
+  document.querySelectorAll('.upBtn').forEach(b=> b.onclick = ()=> { moveUp(b.dataset.id); playTone('click'); });
+  document.querySelectorAll('.downBtn').forEach(b=> b.onclick = ()=> { moveDown(b.dataset.id); playTone('click'); });
+  document.querySelectorAll('.delBtn').forEach(b=> b.onclick = ()=> { removeSelected(b.dataset.id); playTone('click'); });
+}
+
+/* =========== ACTIONS =========== */
+function initNew(){ setTheme(currentThemeId); playTone('click'); }
+function pickStep(id){ const i = steps.findIndex(s=>s.id===id); if(i===-1) return; selected.push(steps.splice(i,1)[0]); renderAvailable(); renderSelected(); }
+function removeSelected(id){ const i = selected.findIndex(s=>s.id===id); if(i===-1) return; steps.unshift(selected.splice(i,1)[0]); renderSelected(); renderAvailable(); }
+function moveUp(id){ const i = selected.findIndex(s=>s.id===id); if(i>0){ [selected[i-1],selected[i]]=[selected[i],selected[i-1]]; renderSelected(); } }
+function moveDown(id){ const i = selected.findIndex(s=>s.id===id); if(i>=0 && i<selected.length-1){ [selected[i+1],selected[i]]=[selected[i],selected[i+1]]; renderSelected(); } }
+function shuffleSteps(){ steps = shuffle(steps); renderAvailable(); showNotif('Langkah diacak lagi!','ok'); playTone('click'); }
+function resetAll(){ stickers = 0; stickerCount.textContent = stickers; stickerBox.textContent = '—'; initNew(); showNotif('Semua direset.','ok'); playTone('click'); }
+
+function checkOrder(){
+  // Selected must contain all base steps in relative correct order.
+  const themeBase = THEMES[currentThemeId].steps;
+  const selTexts = selected.map(s=>s.text);
+  let lastIdx = -1; let ok=true;
+  for(const base of themeBase){
+    const idx = selTexts.indexOf(base);
+    if(idx === -1){ ok=false; break; }
+    if(idx <= lastIdx){ ok=false; break; }
+    lastIdx = idx;
+  }
+  if(ok){
+    playTone('success');
+    confetti({ particleCount: 140, spread: 100, origin: { y: 0.6 } });
+    stickers += 1; stickerCount.textContent = stickers; stickerBox.textContent = '⭐ x' + stickers;
+    showNotif('Hore! Urutan benar. Stiker didapatkan!','ok');
+  } else {
+    playTone('error'); showNotif('Belum tepat, coba susun lagi.','err');
+  }
+}
+
+/* Presentasi (sederhana) */
+function present(){
+  if(selected.length===0){ showNotif('Belum ada langkah untuk dipresentasikan','err'); playTone('error'); return; }
+  const lines = selected.map((s,i)=>`${i+1}. ${s.text}`).join('\\n');
+  alert(`Presentasi - ${THEMES[currentThemeId].title}\\n\\n${lines}`);
+  playTone('click');
+}
+
+/* Speak selected or available */
+function speak(){
+  if(!('speechSynthesis' in window)){ showNotif('Browser tidak mendukung suara', 'err'); return; }
+  const arr = selected.length? selected.map((s,i)=>`Langkah ${i+1}: ${s.text}`) : steps.slice(0,6).map((s,i)=>`Langkah ${i+1}: ${s.text}`);
+  const utter = new SpeechSynthesisUtterance(arr.join('. '));
+  utter.lang = 'id-ID'; speechSynthesis.cancel(); speechSynthesis.speak(utter);
+  playTone('click');
+}
+
+/* Background picker */
+document.querySelectorAll('.bg-thumb').forEach(el=> el.onclick = ()=> {
+  document.querySelector('.app').style.backgroundImage = `linear-gradient(180deg, rgba(2,8,20,0.25), rgba(2,8,20,0.45)), url('${el.dataset.src}')`;
+  playTone('click'); showNotif('Background diubah','ok');
+});
+
+/* Attach button handlers */
+document.getElementById('btnShuffle').onclick = ()=> shuffleSteps();
+document.getElementById('btnNew').onclick = ()=> initNew();
+document.getElementById('btnReset').onclick = ()=> resetAll();
+document.getElementById('btnCheck').onclick = ()=> checkOrder();
+document.getElementById('btnPresent').onclick = ()=> present();
+document.getElementById('btnSpeak').onclick = ()=> speak();
+document.getElementById('btnChallenge').onclick = ()=> {
+  // quick mini-challenge: prefill with a short shuffled set from theme
+  const t = THEMES[currentThemeId];
+  steps = shuffle(t.steps).map((s,i)=>({ id: 'c_'+i+'_'+Date.now(), text: s }));
+  selected = [];
+  renderAvailable(); renderSelected();
+  showNotif('Tantangan cepat siap! Susun 6 langkah yang logis.','ok'); playTone('click');
+};
+
+/* Initialization */
+function renderThemeTabs(){ themeTabs.innerHTML=''; Object.values(THEMES).forEach(t=>{ const b=document.createElement('div'); b.className='tab'+(t.id===currentThemeId?' active':''); b.textContent = t.title; b.onclick = ()=> setTheme(t.id); themeTabs.appendChild(b); }); }
+renderThemeTabs();
+setTheme('eskrim'); // initial
+
+/* notif container style */
+notifContainer.style.position='fixed'; notifContainer.style.right='16px'; notifContainer.style.top='16px'; notifContainer.style.zIndex='9999';
+
+</script>
+</body>
+</html>
