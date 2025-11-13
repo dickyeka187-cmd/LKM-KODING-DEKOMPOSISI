@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Petualangan Dekomposisi Ceria — Fase C</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark: #071222;
+    --glass: rgba(255,255,255,0.95);
+    --white:#ffffff;
+    --pastel1:#FFD6E0; --pastel2:#CFF7E6; --pastel3:#DCEBFF;
+    --neon1:#FF2D95; --neon2:#00F5A0; --neon3:#00B3FF;
+    --mix1:#FFAA6B; --mix2:#E78BFF; --mix3:#7EF3C7;
+    --shadow: 0 18px 50px rgba(2,8,20,0.6);
+    font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0; background:linear-gradient(180deg,#04101a,#05212a); color:#072033; overflow:hidden}
+  .game{height:100vh;width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative; background-size:cover;background-position:center; transition:background-image .5s ease}
+  .veil{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,8,20,0.12), rgba(2,6,12,0.55));pointer-events:none;z-index:10}
+  header.hud{position:absolute;top:14px;left:18px;right:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:60}
+  .brand{display:flex;align-items:center;gap:12px;color:var(--white)}
+  .logo{width:72px;height:72px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;background:linear-gradient(135deg,var(--pastel1),var(--mix2));box-shadow:var(--shadow);color:#042226}
+  .title{font-size:20px;font-weight:900;color:white}
+  .subtitle{font-size:12px;color:rgba(255,255,255,0.9)}
+  .hud-controls{display:flex;gap:8px;align-items:center}
+  .round-btn{width:44px;height:44px;border-radius:12px;border:0;cursor:pointer;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(2,8,20,0.45);background:linear-gradient(90deg,var(--neon2),var(--neon3));color:#04171a}
+  .pill-btn{padding:10px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;display:inline-flex;gap:8px;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--mix1),var(--mix2));color:#042226;box-shadow:0 12px 30px rgba(6,30,60,0.14)}
+  main.stage{width:min(1200px,96vw);height:min(760px,90vh);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.99));padding:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 380px;gap:16px;position:relative;z-index:40;overflow:hidden}
+  .play{padding:12px;border-radius:14px;display:flex;flex-direction:column;gap:10px;position:relative}
+  .play-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .play-title{font-size:18px;font-weight:900;color:#053245}
+  .play-sub{font-size:13px;color:#2b4f62}
+  .controls-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .big-btn{padding:10px 14px;border-radius:12px;border:0;cursor:pointer;font-weight:900;background:linear-gradient(90deg,var(--pastel2),var(--pastel3));color:#042226;box-shadow:0 8px 22px rgba(10,30,60,0.08)}
+  .lists{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;height:420px}
+  .panel{background:linear-gradient(180deg,#fff,#fffdfd);border-radius:12px;padding:12px;box-shadow:0 10px 26px rgba(6,20,40,0.04);display:flex;flex-direction:column}
+  .panel h4{margin:0 0 8px 0;font-size:15px;color:#063045;font-weight:900}
+  .list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:6px}
+  .card-step{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:12px;background:linear-gradient(90deg,#fff,#fff9f2);box-shadow:0 8px 18px rgba(8,20,40,0.04);transform-origin:center}
+  .card-step:hover{transform:translateY(-6px);transition:transform .22s ease}
+  .card-step .left{display:flex;gap:10px;align-items:center}
+  .num-bubble{width:40px;height:40px;border-radius:10px;background:linear-gradient(90deg,var(--neon3),var(--neon2));color:#042226;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+  .step-text{font-weight:800;color:#052D3A}
+  .step-sub{font-size:12px;color:#2b5568}
+  .sidebar{padding:12px;border-radius:12px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(180deg,#fff,#fffeff)}
+  .theme-list{display:flex;flex-direction:column;gap:8px}
+  .theme-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;cursor:pointer;background:linear-gradient(90deg,rgba(0,0,0,0.02),rgba(0,0,0,0.01))}
+  .theme-item.active{transform:translateX(6px);background:linear-gradient(90deg,var(--mix2),var(--mix3));color:#042226;box-shadow:0 12px 30px rgba(6,30,60,0.06)}
+  .theme-thumb{width:56px;height:46px;border-radius:8px;background-size:cover;background-position:center;box-shadow:0 8px 18px rgba(6,30,60,0.06)}
+  .sticker{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#fff6b6,#ffd1f0);font-weight:900;box-shadow:0 6px 14px rgba(0,0,0,0.12)}
+  .sparkles{position:absolute;inset:0;pointer-events:none;z-index:45}
+  .spark{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,0.6));filter:blur(6px);opacity:0.9;transform:scale(0.6);animation:float 3s linear infinite;mix-blend-mode:screen}
+  @keyframes float{0%{transform:translateY(0) scale(0.7);opacity:0.9}50%{transform:translateY(-20px) scale(1);}100%{transform:translateY(0) scale(0.7);}}
+  .overlay-present{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,6,10,0.45), rgba(2,6,10,0.85));display:flex;align-items:center;justify-content:center;z-index:80}
+  .present-card{width:min(860px,94%);background:linear-gradient(180deg,#fff,#fffef6);border-radius:18px;padding:22px;box-shadow:0 40px 120px rgba(3,10,20,0.6);color:#052226}
+  .present-card h3{margin:0 0 10px 0;font-size:20px;font-weight:900}
+  /* responsive */
+  @media(max-width:1000px){ main.stage{grid-template-columns:1fr;height:88vh} .sidebar{order:2} }
+  /* animated buttons (bounce) */
+  .bouncy{ animation: bounce 1.2s infinite; }
+  @keyframes bounce {0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+</style>
+</head>
+<body>
+<div class="game" id="game">
+  <div class="veil"></div>
+
+  <header class="hud">
+    <div class="brand">
+      <div class="logo">PK</div>
+      <div>
+        <div class="title">Petualangan Dekomposisi Ceria</div>
+        <div class="subtitle">Fase C — Dunia penuh warna untuk anak SD</div>
+      </div>
+    </div>
+
+    <div class="hud-controls">
+      <div class="round-btn" id="btn-sound" title="Suara (klik)">🔊</div>
+      <div class="pill-btn bouncy" id="btn-restart" title="Mulai ulang">🔄 Mulai Ulang</div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <!-- LEFT game area -->
+    <section class="play" id="play">
+      <div class="play-header">
+        <div>
+          <div class="play-title" id="lessonTitle">Tema: —</div>
+          <div class="play-sub" id="lessonSub">Pilih dunia di kanan dan tekan Mulai</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="big-btn bouncy" id="btnShuffle">🔀 Acak</button>
+          <button class="big-btn bouncy" id="btnStart" style="background:linear-gradient(90deg,var(--mix1),var(--neon1));">✨ Mulai</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button class="big-btn" id="btnSpeak" style="background:linear-gradient(90deg,var(--pastel3),var(--pastel2))">🔊 Baca</button>
+        <button class="big-btn" id="btnPresent" style="background:linear-gradient(90deg,var(--mix2),var(--mix3))">📽 Presentasi</button>
+      </div>
+
+      <div class="lists">
+        <div class="panel">
+          <h4>Langkah (pilih dari sini)</h4>
+          <div class="list" id="availableList"></div>
+        </div>
+
+        <div class="panel">
+          <h4>Langkah Terpilih (susun di sini)</h4>
+          <div class="list" id="selectedList"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="big-btn" id="btnCheck" style="background:linear-gradient(90deg,var(--neon1),var(--neon3))">✅ Cek</button>
+            <button class="big-btn" id="btnReset" style="background:linear-gradient(90deg,var(--pastel1),var(--pastel3))">♻️ Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT sidebar -->
+    <aside class="sidebar">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:900;color:#052226">Pilih Dunia</div>
+          <div style="font-size:12px;color:#2b5568">Semua dunia ceria & interaktif</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:900;font-size:18px;color:#042226">Stiker <span id="stickerCount">0</span></div>
+        </div>
+      </div>
+
+      <div class="theme-list" id="themeList"></div>
+
+      <div style="margin-top:8px;">
+        <div style="font-weight:900;color:#042226">Koleksi Stiker</div>
+        <div style="margin-top:8px" class="sticker-box"><div class="sticker" id="stickerBox">—</div></div>
+      </div>
+
+      <div style="margin-top:6px;">
+        <div style="font-weight:900;color:#042226">Petunjuk Guru</div>
+        <div style="font-size:13px;color:#2b5568;margin-top:6px">Minta siswa ambil langkah, susun urut, dan klik Cek. Berikan pujian & stiker bila benar.</div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="sparkles" id="sparkles"></div>
+  <div id="presentOverlay"></div>
+</div>
+
+<!-- confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/* ========== Data ========== */
+const THEMES = [
+  { id:'eskrim', name:'Dunia Es Krim', subtitle:'Membuat Es Krim Sendiri 🍦', bg:'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=1600&q=80&auto=format&fit=crop', steps:[
+    'Siapkan bahan: susu, gula, plastik, es batu, garam',
+    'Tuang susu & gula ke plastik kecil, tutup rapat',
+    'Masukkan plastik kecil ke plastik besar berisi es+garam',
+    'Goyang plastik besar sampai adonan mengental',
+    'Keluarkan plastik kecil, bilas, buka dan sajikan',
+    'Nikmati es krim bersama teman!'
+  ]},
+  { id:'tanam', name:'Dunia Bunga', subtitle:'Menanam Bunga di Sekolah 🌷', bg:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=80&auto=format&fit=crop', steps:[
+    'Siapkan pot dan tanah subur',
+    'Ambil bibit bunga yang sehat',
+    'Isi pot setengah dengan tanah',
+    'Tanam bibit lalu tutup akar dengan tanah',
+    'Sirami setiap hari secukupnya',
+    'Letakkan pot di area terkena sinar'
+  ]},
+  { id:'puzzle', name:'Dunia Puzzle', subtitle:'Bermain Puzzle Ajaib 🧩', bg:'https://images.unsplash.com/photo-1581092559531-2b72a9b8b6b4?w=1600&q=80&auto=format&fit=crop', steps:[
+    'Buka kotak puzzle dan sebarkan kepingan',
+    'Cari kepingan pinggir dan susun bingkai',
+    'Kelompokkan kepingan berdasarkan warna',
+    'Cocokkan kepingan yang pas',
+    'Lengkapi bagian tengah sampai semua pas',
+    'Periksa apakah tidak ada kepingan terlewat'
+  ]},
+  { id:'sepeda', name:'Dunia Sepeda', subtitle:'Bersepeda Aman ke Sekolah 🚲', bg:'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=1600&q=80&auto=format&fit=crop', steps:[
+    'Periksa rem dan tekanan ban',
+    'Kenakan helm dan pelindung',
+    'Rencanakan rute aman',
+    'Patuhi rambu & tanda lalu lintas',
+    'Berhenti bila ada gangguan',
+    'Parkir sepeda di tempat aman'
+  ]},
+  { id:'sarapan', name:'Dunia Sarapan', subtitle:'Membuat Sarapan Sehat 🍳', bg:'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&q=80&auto=format&fit=crop', steps:[
+    'Cuci tangan sebelum memasak',
+    'Siapkan bahan: roti, telur, buah',
+    'Masak telur atau buat sandwich sehat',
+    'Potong buah sebagai pelengkap',
+    'Sajikan dengan minuman sehat',
+    'Ajak teman makan bersama'
+  ]}
+];
+
+/* ========== State ========== */
+let currentTheme = THEMES[0];
+let steps = [];
+let selected = [];
+let stickers = 0;
+let soundOn = true;
+
+/* ========== Refs ========== */
+const gameEl = document.getElementById('game');
+const lessonTitle = document.getElementById('lessonTitle');
+const lessonSub = document.getElementById('lessonSub');
+const availableList = document.getElementById('availableList');
+const selectedList = document.getElementById('selectedList');
+const themeList = document.getElementById('themeList');
+const stickerCount = document.getElementById('stickerCount');
+const stickerBox = document.getElementById('stickerBox');
+const sparkles = document.getElementById('sparkles');
+const presentOverlay = document.getElementById('presentOverlay');
+
+/* ========== Audio (WebAudio) ========== */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSfx(type){
+  if(!soundOn) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  if(type==='click'){ o.type='sine'; o.frequency.value=1100; g.gain.value=0.02; }
+  if(type==='pop'){ o.type='triangle'; o.frequency.value=780; g.gain.value=0.03; }
+  if(type==='success'){ o.type='sine'; o.frequency.value=540; g.gain.value=0.06; }
+  if(type==='error'){ o.type='sawtooth'; o.frequency.value=240; g.gain.value=0.06; }
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  setTimeout(()=> o.stop(), type==='success'?260:120);
+}
+document.getElementById('btn-sound').onclick = ()=> {
+  soundOn = !soundOn;
+  document.getElementById('btn-sound').textContent = soundOn? '🔊' : '🔈';
+  playSfx('click');
+};
+
+/* ========== Utils ========== */
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]] } return r; }
+function id(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function showToast(text, type='ok'){
+  const d = document.createElement('div'); d.className = 'notif ' + (type==='ok'?'ok':'err'); d.innerHTML = `<strong style="margin-right:8px;">${type==='ok'?'Yeay':'Oops'}</strong><div>${text}</div>`;
+  d.style.position='absolute'; d.style.top='24px'; d.style.right='24px'; d.style.zIndex=120; document.body.appendChild(d);
+  setTimeout(()=> d.style.opacity = 1, 10);
+  setTimeout(()=> { d.style.opacity = 0; setTimeout(()=> d.remove(), 420) }, 2500);
+}
+
+/* ========== Sparkles ========== */
+function spawnSparkles(){
+  sparkles.innerHTML = '';
+  for(let i=0;i<12;i++){
+    const s = document.createElement('div'); s.className='spark';
+    s.style.left = (Math.random()*100)+'%'; s.style.top = (Math.random()*100)+'%';
+    s.style.width = (6 + Math.random()*18) + 'px';
+    s.style.animationDuration = (2 + Math.random()*3)+'s';
+    s.style.opacity = (0.6 + Math.random()*0.4);
+    sparkles.appendChild(s);
+  }
+}
+
+/* ========== Render themes list ========== */
+function renderThemeList(){
+  themeList.innerHTML = '';
+  THEMES.forEach(t=>{
+    const el = document.createElement('div'); el.className = 'theme-item' + (t.id===currentTheme.id? ' active':'');
+    el.innerHTML = `<div class="theme-thumb" style="background-image:url('${t.bg}')"></div><div style="font-weight:900">${t.name}<div style="font-size:12px;color:#2b5568">${t.subtitle}</div></div>`;
+    el.onclick = ()=> { setTheme(t.id); playSfx('click'); };
+    themeList.appendChild(el);
+  });
+}
+
+/* ========== Set and load theme ========== */
+function setTheme(id){
+  currentTheme = THEMES.find(t=>t.id===id) || THEMES[0];
+  gameEl.style.backgroundImage = `linear-gradient(180deg, rgba(2,6,12,0.18), rgba(2,6,12,0.45)), url('${currentTheme.bg}')`;
+  lessonTitle.textContent = currentTheme.name;
+  lessonSub.textContent = currentTheme.subtitle;
+  steps = shuffle(currentTheme.steps.map(s=>({ id:id()+Date.now(), text:s })));
+  selected = [];
+  renderAvailable(); renderSelected(); renderThemeList(); spawnSparkles();
+}
+
+/* ========== Render lists ========== */
+function renderAvailable(){
+  availableList.innerHTML = '';
+  steps.forEach((s, idx)=>{
+    const div = document.createElement('div'); div.className = 'card-step';
+    div.innerHTML = `<div class="left"><div class="num-bubble">${idx+1}</div><div style="margin-left:10px;"><div class="step-text">${s.text}</div><div class="step-sub">Langkah acak</div></div></div><div class="step-actions"><button class="round-btn pick" data-id="${s.id}">PILIH</button></div>`;
+    availableList.appendChild(div);
+  });
+  document.querySelectorAll('.pick').forEach(b=> b.onclick = ()=> { pickStep(b.dataset.id); playSfx('pop'); });
+}
+
+function renderSelected(){
+  selectedList.innerHTML = '';
+  selected.forEach((s, idx)=>{
+    const div = document.createElement('div'); div.className = 'card-step';
+    div.innerHTML = `<div class="left"><div class="num-bubble" style="background:linear-gradient(90deg,var(--mix1),var(--neon1))">${idx+1}</div><div style="margin-left:10px;"><div class="step-text">${s.text}</div><div class="step-sub">Langkah terurut</div></div></div><div style="display:flex;gap:6px;"><button class="round-btn up" data-id="${s.id}">▲</button><button class="round-btn down" data-id="${s.id}">▼</button><button class="round-btn del" data-id="${s.id}">❌</button></div>`;
+    selectedList.appendChild(div);
+  });
+  document.querySelectorAll('.up').forEach(b=> b.onclick = ()=> { moveUp(b.dataset.id); playSfx('click'); });
+  document.querySelectorAll('.down').forEach(b=> b.onclick = ()=> { moveDown(b.dataset.id); playSfx('click'); });
+  document.querySelectorAll('.del').forEach(b=> b.onclick = ()=> { removeSelected(b.dataset.id); playSfx('error'); });
+}
+
+/* ========== Actions ========== */
+function pickStep(id){
+  const i = steps.findIndex(s=>s.id===id); if(i===-1) return;
+  selected.push(steps.splice(i,1)[0]); renderAvailable(); renderSelected();
+}
+function removeSelected(id){
+  const i = selected.findIndex(s=>s.id===id); if(i===-1) return;
+  steps.unshift(selected.splice(i,1)[0]); renderSelected(); renderAvailable();
+}
+function moveUp(id){
+  const i = selected.findIndex(s=>s.id===id); if(i>0){ [selected[i-1],selected[i]]=[selected[i],selected[i-1]]; renderSelected(); }
+}
+function moveDown(id){
+  const i = selected.findIndex(s=>s.id===id); if(i>=0 && i<selected.length-1){ [selected[i+1],selected[i]]=[selected[i],selected[i+1]]; renderSelected(); }
+}
+
+function shuffleSteps(){ steps = shuffle(steps); renderAvailable(); showToast('Langkah diacak lagi!', 'ok'); }
+function resetAll(){ stickers = 0; stickerCount.textContent = stickers; stickerBox.textContent = '—'; setTheme(currentTheme.id); showToast('Semua direset.', 'ok'); playSfx('click'); }
+
+function checkOrder(){
+  const base = currentTheme.steps;
+  const selTexts = selected.map(s=>s.text);
+  let ok = true; let last = -1;
+  for(const b of base){
+    const idx = selTexts.indexOf(b);
+    if(idx === -1){ ok=false; break; }
+    if(idx <= last){ ok=false; break; }
+    last = idx;
+  }
+  if(ok){
+    playSfx('success');
+    confetti({ particleCount: 200, spread: 120, origin: { y:0.6 } });
+    stickers += 1; stickerCount.textContent = stickers; stickerBox.textContent = '⭐ x' + stickers;
+    showToast('Yeay! Urutan benar — stiker didapat!', 'ok');
+    burstSparkles();
+  } else {
+    playSfx('error'); showToast('Belum tepat. Susun ulang ya!', 'err');
+  }
+}
+
+function burstSparkles(){ spawnSparkles(); setTimeout(()=> sparkles.innerHTML = '', 2400); }
+
+/* Present modal */
+function present(){
+  if(selected.length===0){ showToast('Belum ada langkah untuk presentasi','err'); playSfx('error'); return; }
+  const overlay = document.createElement('div'); overlay.className = 'overlay-present';
+  overlay.innerHTML = `<div class="present-card"><h3>Presentasi: ${currentTheme.name}</h3><div style="margin-top:12px">${selected.map((s,i)=>`<div style="margin:8px 0;"><strong>${i+1}.</strong> ${s.text}</div>`).join('')}</div><div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="pill-btn" id="closePresent">Tutup</button></div></div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('closePresent').onclick = ()=> { overlay.remove(); playSfx('click'); };
+  playSfx('click');
+}
+
+/* Speak */
+function speak(){
+  if(!('speechSynthesis' in window)){ showToast('Browser tidak mendukung suara', 'err'); return; }
+  const arr = selected.length? selected.map((s,i)=>`Langkah ${i+1}: ${s.text}`) : steps.slice(0,6).map((s,i)=>`Langkah ${i+1}: ${s.text}`);
+  const ut = new SpeechSynthesisUtterance(arr.join('. ')); ut.lang='id-ID'; speechSynthesis.cancel(); speechSynthesis.speak(ut); playSfx('click');
+}
+
+/* Quick challenge */
+function quickChallenge(){
+  steps = shuffle(currentTheme.steps.map(s=>({ id:id()+Date.now(), text:s })));
+  selected = [];
+  renderAvailable(); renderSelected();
+  showToast('Tantangan cepat siap!', 'ok'); playSfx('click');
+}
+
+/* Init & bindings */
+document.getElementById('btnStart').onclick = ()=> { setTheme(currentTheme.id); playSfx('click'); showToast('Siap! Susun langkahnya ya 🙂','ok'); };
+document.getElementById('btnShuffle').onclick = ()=> shuffleSteps();
+document.getElementById('btnCheck').onclick = ()=> checkOrder();
+document.getElementById('btnReset').onclick = ()=> resetAll();
+document.getElementById('btnSpeak').onclick = ()=> speak();
+document.getElementById('btnPresent').onclick = ()=> present();
+document.getElementById('btn-restart').onclick = ()=> { resetAll(); playSfx('click'); };
+document.getElementById('btnShuffle').addEventListener('dblclick', ()=> { quickChallenge(); });
+document.getElementById('btnStart').addEventListener('dblclick', ()=> { quickChallenge(); });
+
+/* theme rendering */
+function renderThemeItems(){
+  themeList.innerHTML = '';
+  THEMES.forEach(t=>{
+    const el = document.createElement('div'); el.className = 'theme-item' + (t.id===currentTheme.id? ' active':'');
+    el.innerHTML = `<div class="theme-thumb" style="background-image:url('${t.bg}')"></div><div style="font-weight:900">${t.name}<div style="font-size:12px;color:#2b5568">${t.subtitle}</div></div>`;
+    el.onclick = ()=> { setTheme(t.id); playSfx('click'); };
+    themeList.appendChild(el);
+  });
+}
+
+/* set theme helper */
+function setTheme(id){
+  currentTheme = THEMES.find(t=>t.id===id) || THEMES[0];
+  gameEl.style.backgroundImage = `linear-gradient(180deg, rgba(2,6,12,0.18), rgba(2,6,12,0.45)), url('${currentTheme.bg}')`;
+  lessonTitle.textContent = currentTheme.name;
+  lessonSub.textContent = currentTheme.subtitle;
+  steps = shuffle(currentTheme.steps.map(s=>({ id:id()+Date.now(), text:s })));
+  selected = [];
+  renderAvailable(); renderSelected(); renderThemeList(); renderThemeItems(); spawnSparkles();
+}
+
+/* initial */
+setTheme('eskrim');
+renderThemeItems();
+
+/* unlock audio by first gesture */
+document.body.addEventListener('click', ()=> { if(audioCtx.state==='suspended') audioCtx.resume(); }, { once:true });
+
+</script>
+</body>
+</html>
